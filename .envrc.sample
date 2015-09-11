@@ -1,0 +1,5 @@
+export ACCESS_TOKEN=""
+export ACCESS_TOKEN_SECRET=""
+export SERVER_RESOURCE_ID=""
+export ARCHIVE_RESOURCE_ID=""
+export DISK_RESOURCE_ID=""
