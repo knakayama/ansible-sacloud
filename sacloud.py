@@ -74,18 +74,6 @@ options:
     required: false
     default: null
     aliases: []
-  swytch_resource_id:
-    description:
-      - Switch resource id
-    required: false
-    default: []
-    aliases: ["swytch_id"]
-  user_ip_address:
-    description:
-      - ip address
-    required: false
-    default: []
-    aliases: []
   disk_config_host_name:
     description:
       - disk config hostname
@@ -95,6 +83,12 @@ options:
   disk_config_ssh_key:
     description:
       - The sacloud sshkey to use.
+    required: false
+    default: null
+    aliases: []
+  disk_config_password:
+    description:
+      - The sacloud password to use.
     required: false
     default: null
     aliases: []
@@ -111,12 +105,36 @@ options:
     required: false
     default: default
     aliases: []
-  disk_size:
+  disk_size_gib:
     description:
       - disk size (GB)
     required: false
     default: 20
     aliases: []
+  disk_desc:
+    description:
+      - disk description
+    required: false
+    default: null
+    aliases: []
+  disk_tags:
+    description:
+      - disk tags
+    required: false
+    default: null
+    aliases: []
+  archive_resource_id:
+    description:
+      - The archive resource id
+    required: false
+    default: null
+    aliases: ["archive_id"]
+  disk_resource_id:
+    description:
+      - The disk resource id
+    required: false
+    default: null
+    aliases: ["disk_id"]
   state:
     description:
       - On C(present), it will create if server does not exist.
@@ -129,26 +147,39 @@ options:
 '''
 
 EXAMPLES = '''
-- name: Create a new server
-  sacloud_server:
-    access_token: _YOUR_ACCESS_TOKEN_HERE_
-    access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
-    server_name: ubuntu14_LTS_64
-    zone_id: tk1a
-    server_cpu: 2
-    server_mem: 2
-    disk_config_ssh_key: _YOUR_SSH_KEY_HERE_
-    server_icon: Ubuntu
+- name: Bootstrap sacloud resource
+  connection: local
+  sacloud:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN')  }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET')  }}"
+    zone_id: is1a
+    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
+    disk_icon: Ubuntu
     disk_plan: ssd
-    disk_size: 100
+    disk_size: 20
+    disk_desc: |-
+      this
+      is
+      a
+      disk
+    disk_name: test disk
+    disk_tags:
+      - virtio-net-pci
+      - boot-cdrom
     disk_config_host_name: example.com
+    disk_config_password: pAssw0rd
+    disk_config_ssh_key: "{{ lookup('file', 'id_rsa.pub') }}"
+    server_cpu: 1
+    server_mem: 1
+    server_icon: Ubuntu
     server_desc: |-
-        this
-        is
-        a
-        test
+      this
+      is
+      a
+      server
+    server_name: test server
     server_tags:
-      - auto-reboot
+      - group=a
       - keyboard-us
     state: present
 
