@@ -18,24 +18,11 @@ Install `saklient` with pip:
 $ pip install saklient
 ```
 
-then, clone this repository like this:
-
-```bash
-$ git clone https://github.com/knakayama/ansible-sacloud path/to/playbook/library
-```
-
-finally, set `library` path to your `ansible.cfg`:
-
-```ini
-[default]
-library=library
-```
+Next, clone this repository and copy `sacloud.py` to your `library` directory.
 
 # Usage
 
-Please see [example playbooks](https://github.com/knakayama/ansible-sacloud/tree/master/examples).
-
-If you don't want to store tokens in plain text, consider using [lookup plugin](http://docs.ansible.com/ansible/playbooks_lookups.html) or [Vault](http://docs.ansible.com/ansible/playbooks_vault.html).
+See [demo repository](https://github.com/knakayama/ansible-sacloud-demo).
 
 # License
 

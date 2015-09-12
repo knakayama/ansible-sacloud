@@ -313,8 +313,9 @@ class Sacloud():
 def main():
     module = AnsibleModule(
         argument_spec=dict(
-            access_token=dict(required=True, aliases=["token"]),
-            access_token_secret=dict(required=True, aliases=["secret"]),
+            access_token=dict(required=True, no_log=True, aliases=["token"]),
+            access_token_secret=dict(required=True, no_log=True,
+                                        aliases=["secret"]),
             zone_id=dict(required=False, default="is1a",
                             choices=["is1a", "is1b", "tk1a"]),
             disk_plan=dict(required=False, default="ssd",
@@ -331,9 +332,9 @@ def main():
             disk_icon=dict(required=False),
             disk_size_gib=dict(required=False, default=20,
                                     type="int", aliases=["disk_size"]),
-            disk_config_password=dict(required=False),
+            disk_config_password=dict(required=False, no_log=True),
             disk_config_host_name=dict(required=False),
-            disk_config_ssh_key=dict(required=False),
+            disk_config_ssh_key=dict(required=False, no_log=True),
             server_name=dict(required=False, default="default"),
             server_desc=dict(required=False),
             server_tags=dict(required=False, type="list"),
@@ -460,7 +461,8 @@ def main():
         module.fail_json(msg="Failed to boot server: %s" % e)
 
     module.exit_json(changed=True, result="Successfully added server: %s"
-                        % server.name)
+                        % server.name, ansible_facts=dict(sacloud_ip_address=iface.ip_address))
 
 from ansible.module_utils.basic import *
-main()
+if __name__ == "__main__":
+    main()
