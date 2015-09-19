@@ -1,0 +1,9 @@
+---
+galaxy_info:
+  author: Koji Nakayama
+  description: Create sacloud resources
+  license: MIT
+  min_ansible_version: 2.7
+  categories:
+  - cloud
+dependencies: []
