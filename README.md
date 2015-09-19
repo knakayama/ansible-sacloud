@@ -18,7 +18,18 @@ Install `saklient` with pip:
 $ pip install saklient
 ```
 
-Next, clone this repository and copy `sacloud.py` to your `library` directory.
+Next, download this repository with `ansible-galaxy`:
+
+```bash
+$ ansible-galaxy install knakayama.sacloud -p path/to/role
+```
+
+Finally, enable `sacloud.py` in your `role` like this:
+
+```yaml
+roles:
+  - knakayama.sacloud
+```
 
 # Usage
 
