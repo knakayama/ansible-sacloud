@@ -1,0 +1,11 @@
+---
+- name: Build phpMyAdmin Standalone Server
+  hosts: all
+  roles:
+    - { role: knakayama.sacloud, tags: [ knakayama.sacloud ] }
+    - { role: bootstrap,         tags: [ bootstrap ] }
+    - { role: common,            tags: [ common ] }
+    - { role: mysql,             tags: [ mysql ] }
+    - { role: nginx,             tags: [ nginx ] }
+    - { role: php5-fpm,          tags: [ php5-fpm ] }
+    - { role: phpmyadmin,        tags: [ phpmyadmin ] }

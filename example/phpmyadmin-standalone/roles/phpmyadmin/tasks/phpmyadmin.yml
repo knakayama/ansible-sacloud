@@ -1,0 +1,11 @@
+---
+- name: Install phpmyadmin
+  apt:
+    name: phpmyadmin
+    state: present
+
+- name: Create symbolick link
+  file:
+    src: /usr/share/phpmyadmin
+    dest: /usr/share/nginx/html/phpmyadmin
+    state: link

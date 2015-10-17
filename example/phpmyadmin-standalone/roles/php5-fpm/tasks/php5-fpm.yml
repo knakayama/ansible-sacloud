@@ -1,0 +1,36 @@
+---
+- name: Install php5-fpm and php5-mysql
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - php5-fpm
+    - php5-mysql
+
+- name: Adjust php.ini
+  lineinfile:
+    dest: /etc/php5/fpm/php.ini
+    state: present
+    create: yes
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - regexp: '^;?date.timezone ='
+      line: date.timezone = "Asia/Tokyo"
+    - regexp: '(;\s)?max_input_vars ='
+      line: max_input_vars = 2000
+
+- name: Check if mcrypt module already installed
+  shell: |
+    php5-fpm --info | grep -F 'mcrypt'
+  register: mcrypt_result
+  failed_when: no
+  always_run: yes
+  changed_when: no
+
+- name: Enable mcrypt
+  become: yes
+  shell: |
+    php5enmod mcrypt
+  when: mcrypt_result.rc != 0
+  notify: Restart php5-fpm

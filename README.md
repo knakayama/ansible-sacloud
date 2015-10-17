@@ -33,11 +33,7 @@ roles:
 
 # Usage
 
-See [demo repository](https://github.com/knakayama/ansible-sacloud-demo).
-
-# License
-
-MIT
+See [example](https://github.com/knakayama/ansible-sacloud/example).
 
 # Author
 
