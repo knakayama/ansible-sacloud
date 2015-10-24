@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Koji Nakayama
-  description: Create sacloud resources
+  description: Manage sacloud with Ansible
   license: MIT
   min_ansible_version: 1.8
   categories:
