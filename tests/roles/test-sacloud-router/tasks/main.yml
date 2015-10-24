@@ -1,0 +1,2 @@
+---
+- include: test-sacloud-router.yml

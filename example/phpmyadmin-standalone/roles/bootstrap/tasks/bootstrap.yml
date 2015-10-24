@@ -1,0 +1,47 @@
+---
+- name: Create server on sacloud
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: ubuntu14.04_LTS
+    cpu: 2
+    mem: 2
+    icon: Ubuntu
+    desc: Ubuntu 14.04 LTS
+    tags:
+      - auto-reboot
+      - keyboard-us
+    state: present
+
+- name: Create router and connect to sacloud server
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    band_width_mbps: 100
+    network_mask_len: 28
+    desc: connected to "{{ sacloud_server_resource_id }}"
+    state: present
+    connect: "{{ sacloud_server_resource_id }}"
+
+- name: Create Ubuntu 14.04 disk and connect to sacloud server
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
+    plan: ssd
+    size_gib: 20
+    desc: connected to "{{ sacloud_server_resource_id }}"
+    config_host_name: phpmyadmin01.example.com
+    config_ipv4_address: "{{ sacloud_ipv4_address }}"
+    config_ssh_key: "{{ lookup('file', '../../../keys/id_rsa.pub') }}"
+    config_network_mask_len: 28
+    config_default_route: "{{ sacloud_default_route }}"
+    state: present
+    connect: "{{ sacloud_server_resource_id }}"
+
+- name: Boot ubuntu 14.04 on sacloud
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    resource_id: "{{ sacloud_server_resource_id }}"
+    state: running

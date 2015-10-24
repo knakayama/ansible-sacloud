@@ -1,0 +1,8 @@
+---
+- name: Test ansible-sacloud module
+  hosts: localhost
+  connection: local
+  roles:
+    - { role: test-sacloud-router, tags: [ test-sacloud-router ] }
+    - { role: test-sacloud-disk,   tags: [ test-sacloud-disk   ] }
+    - { role: test-sacloud-server, tags: [ test-sacloud-server ] }
