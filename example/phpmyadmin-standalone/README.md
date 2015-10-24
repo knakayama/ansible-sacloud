@@ -1,5 +1,5 @@
-Bootstrapping a sacloud server and installing nginx
-=====================================================
+Bootstrapping a sacloud server and installing phpMyAdmin
+========================================================
 
 # Usage
 
@@ -11,7 +11,7 @@ $ pip install -r requirements.txt
 
 ## Edit .envrc
 
-Edit [`.envrc` file](http://direnv.net/) and enter your tokens.
+Edit `.envrc` and enter your tokens.
 
 ```bash
 $ cp -ipv .envrc.sample .envrc
