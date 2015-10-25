@@ -1,6 +1,8 @@
 ansible-sacloud
 ===============
 
+**Note: heavily experimental quality. Use at your own risk**
+
 # Description
 
 Manage sacloud with Ansible
