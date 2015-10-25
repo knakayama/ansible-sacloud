@@ -15,6 +15,7 @@
 
 - name: Wait for port 22 to open
   connection: local
+  become: false
   wait_for:
     host: "{{ inventory_hostname }}"
     port: 22
