@@ -26,6 +26,12 @@ $ cp -ipv hosts.yml.sample hosts.yml
 $ $EDITOR hosts.yml
 ```
 
+## Create ssh keys
+
+```bash
+$ ssh-keygen -f keys/id_isa
+```
+
 ## Install sacloud library via ansible-galaxy
 
 ```bash
