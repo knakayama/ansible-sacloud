@@ -1,0 +1,7 @@
+---
+- name: Restart php5-fpm
+  remote_user: ubuntu
+  become: yes
+  service:
+    name: php5-fpm
+    state: restarted

@@ -1,0 +1,28 @@
+---
+- name: Install mysql-server and python-mysqldb
+  remote_user: ubuntu
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - mysql-server
+    - python-mysqldb
+
+- name: Create database for phpMyAdmin
+  mysql_db:
+    name: phpmyadmin
+    state: present
+
+- name: Import phpMyAdmin schema
+  mysql_db:
+    name: phpmyadmin
+    state: import
+    target: /usr/share/dbconfig-common/data/phpmyadmin/install/mysql
+
+- name: Create phpMyAdmin control user
+  mysql_user:
+    name: phpmyadmin
+    state: present
+    password: pAssw0rd
+    priv: phpmyadmin.*:ALL

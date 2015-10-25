@@ -1,0 +1,3 @@
+export ACCESS_TOKEN=""
+export ACCESS_TOKEN_SECRET=""
+export ARCHIVE_RESOURCE_ID=""
