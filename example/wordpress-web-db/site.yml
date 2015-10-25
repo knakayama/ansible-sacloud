@@ -1,0 +1,20 @@
+---
+- name: Bootstrap sacloud servers
+  hosts: localhost
+  roles:
+    #- { role: knakayama.sacloud, tags: [ knakayama.sacloud ] }
+    - { role: bootstrap,         tags: [ bootstrap ] }
+
+- name: Provision db server
+  hosts: db
+  roles:
+    - { role: common, tags: [ common ] }
+    - { role: mysql,  tags: [ mysql ] }
+
+- name: Provision web server
+  hosts: web
+  roles:
+    - { role: common,    tags: [ common ] }
+    - { role: nginx,     tags: [ nginx ] }
+    - { role: php5-fpm,  tags: [ php5-fpm ] }
+    - { role: wordpress, tags: [ wordpress ] }

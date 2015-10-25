@@ -1,0 +1,9 @@
+---
+- name: Correct sudo warning
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    create: yes
+    regexp: '^(127\.0\.0\.1\s+localhost)'
+    line: '\1 {{ ansible_fqdn }}'
+    backrefs: yes
