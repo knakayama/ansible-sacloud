@@ -1,7 +1,7 @@
 ansible-sacloud
 ===============
 
-**Note: heavily experimental quality. Use at your own risk**
+**Note: heavily experimental quality. Use at your own risk.**
 
 # Description
 
@@ -14,7 +14,7 @@ Manage sacloud with Ansible
 
 # Usage
 
-See [example](https://github.com/knakayama/ansible-sacloud/tree/master/example/).
+See [demo repository](https://github.com/knakayama/ansible-sacloud-demo).
 
 # Author
 
