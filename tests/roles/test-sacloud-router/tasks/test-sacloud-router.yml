@@ -49,7 +49,7 @@
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_router_resource_id }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
     band_width_mbps: 500
     state: present
   register: result
@@ -62,11 +62,11 @@
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: 1
+    router_resource_id: 1
     state: absent
   register: result
   ignore_errors: yes
-- name: Verify results of fail if non exist resource_id
+- name: Verify results of fail if non exist router_resource_id
   assert:
     that:
       - result|failed
@@ -82,7 +82,7 @@
   assert:
     that:
       - result|failed
-      - 'result.msg == "missing required arguments: resource_id"'
+      - 'result.msg == "missing required arguments: router_resource_id"'
 
 - name: Setup sacloud server
   sacloud_server:
@@ -102,12 +102,57 @@
       - auto-reboot
       - keyboard-us
     state: present
+
+- name: Test fail if state is connect and no router resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connect
+  register: result
+  ignore_errors: yes
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: router_resource_id"'
+
+- name: Test fail if state is connect and no server resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    state: connect
+  register: result
+  ignore_errors: yes
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: server_resource_id"'
+
+- name: Test fail if state is connect and no exist server resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: 1
+    state: connect
+  register: result
+  ignore_errors: yes
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find server iface: 1"'
+
 - name: Connect to sacloud server
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    state: present
-    connect: "{{ sacloud_server_resource_id }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connect
   register: result
 - name: Verify results of success
   assert:
@@ -118,13 +163,13 @@
   sacloud_server:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_server_resource_id }}"
+    router_resource_id: "{{ sacloud_server_resource_id }}"
     state: absent
 - name: Test if sacloud router successfully removed
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_router_resource_id }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
     state: absent
   register: result
 - name: Verify results of success

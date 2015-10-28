@@ -58,7 +58,7 @@ options:
       - The router description
     required: false
     default: false
-  resource_id:
+  router_resource_id:
     description:
       - The resource id for the router
     required: false
@@ -84,12 +84,13 @@ options:
     description:
       - On C(present), it will create if router does not exist.
       - On C(absent) will remove a router if it exists.
+      - On C(connect) will connect to server.
     required: false
-    choices: ['present', 'absent']
+    choices: ['present', 'absent', 'connect']
     default: 'present'
-  connect:
+  server_resource_id:
     description:
-      - Server resource id to connect to
+      - The resource id for the server
     required: false
     default: false
 '''
@@ -118,7 +119,7 @@ EXAMPLES = '''
 - sacloud_router:
     access_token: _YOUR_ACCESS_TOKEN_HERE_
     access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
-    resource_id: _ROUTER_RESOURCE_ID_HERE_
+    router_resource_id: _ROUTER_RESOURCE_ID_HERE_
     state: absent
 '''
 
@@ -169,14 +170,14 @@ class Router():
         except Exception, e:
             self._fail(msg='Failed to find router icon: %s' % e)
 
-    def get_router_by_id(self, resource_id):
+    def get_router_by_id(self, router_resource_id):
         try:
-            return self._saklient.router.get_by_id(str(resource_id))
+            return self._saklient.router.get_by_id(str(router_resource_id))
         except Exception:
-            self._fail(msg='Failed to find router: %s' % resource_id)
+            self._fail(msg='Failed to find router: %s' % router_resource_id)
 
     def destroy(self):
-        _router = self.get_router_by_id(self._module.params['resource_id'])
+        _router = self.get_router_by_id(self._module.params['router_resource_id'])
 
         if self._module.check_mode:
             self._success(changed=True)
@@ -200,9 +201,6 @@ class Router():
         except Exception, e:
             self._fail(msg='Failed to create router: %s' % e)
 
-        if self._module.params['connect']:
-            self._connect(_router, self._module.params['connect'])
-
         self._success(result='Successfully create router: %s'
                             % _router.id,
                             ansible_facts=self._get_facts(_router))
@@ -210,39 +208,50 @@ class Router():
     def _get_facts(self, _router):
         _swytch = _router.get_swytch()
         default_route = _swytch.dump()['Subnets'][0]['DefaultRoute']
+
         try:
-            ipv4_address = _swytch.collect_unused_ipv4_addresses()[0]
+            ipv4_addressesse = _swytch.collect_unused_ipv4_addresses()
         except Exception, e:
             self._fail(msg='Failed to collect unused ipv4 address: %s' % e)
 
         return dict(
                 sacloud_router_resource_id=_router.id,
                 sacloud_default_route=default_route,
-                sacloud_ipv4_address=ipv4_address
+                sacloud_ipv4_addressess=ipv4_addressesse
                 )
 
     # TODO: implement shared segment
-    def _connect(self, _router, server_resource_id):
+    def connect(self, router_resource_id, server_resource_id):
+        _router = self._get_router_by_id(router_resource_id)
         _iface = self._get_iface_by_id(server_resource_id)
 
         try:
             return _iface.connect_to_swytch(_router.get_swytch())
         except Exception, e:
             self._fail('Failed to connect to sywitch: %s' % e)
+        self._success(result='Successfully connect router: %s' % _router.id)
+
+    def _get_router_by_id(self, router_resource_id):
+        try:
+            return self._saklient.router.get_by_id(str(router_resource_id))
+        except Exception, e:
+            self._fail(msg='Failed to find router: %s' % e)
 
     def _get_iface_by_id(self, server_resource_id):
         try:
             return self._saklient.server.get_by_id(str(server_resource_id)).add_iface()
         except Exception, e:
-            self._fail(msg='Failed to find server iface: %s' % e)
+            # FIXME: UnicodeEncodeError
+            #self._fail(msg='Failed to find server iface: %s' % e)
+            self._fail(msg='Failed to find server iface: %d' % server_resource_id)
 
-    def update(self, resource_id):
-        _router = self.get_router_by_id(resource_id)
+    def update(self, router_resource_id):
+        _router = self.get_router_by_id(router_resource_id)
 
         if self._module.check_mode:
             self._success(changed=True)
 
-        self._set_params(_router, resource_id)
+        self._set_params(_router, router_resource_id)
         try:
             _router.save()
             _router.sleep_while_creating()
@@ -252,13 +261,13 @@ class Router():
                         % int(_router.id),
                         ansible_facts=dict(sacloud_router_resource_id=_router.id))
 
-    def _set_params(self, _router, resource_id=None):
+    def _set_params(self, _router, router_resource_id=None):
         _router.name = self._module.params['name']
         _router.description = self.get_desc(self._module.params['desc'])
         _router.tags = self.get_tags(self._module.params['tags'])
         _router.icon = self.get_icon(self._module.params['icon'])
 
-        if resource_id:
+        if router_resource_id:
             if self._module.params['network_mask_len']:
                 # FIXME: Immutable fields cannot be modified after the resource creation
                 #_router.set_network_mask_len(self._module.params['network_mask_len'])
@@ -287,7 +296,7 @@ def main():
             access_token_secret=dict(required=True, aliases=['token_secret']),
             zone_id=dict(required=False, default='is1a',
                             choices=['is1a', 'is1b', 'tk1a']),
-            resource_id=dict(required=False, type='int'),
+            router_resource_id=dict(required=False, type='int'),
             name=dict(required=False, default='default'),
             desc=dict(required=False),
             tags=dict(required=False, type='list'),
@@ -299,8 +308,8 @@ def main():
                                         default=28, type='int',
                                         choices=[26, 27, 28]),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent']),
-            connect=dict(required=False, type='int')
+                        choices=['present', 'absent', 'connect']),
+            server_resource_id=dict(required=False, type='int')
         ),
         supports_check_mode=True
     )
@@ -317,18 +326,26 @@ def main():
 
     router = Router(module, saklient)
 
-    if module.params['resource_id']:
-        if module.params['state'] == 'absent':
+    # TODO: more convinient way to handle args
+    if module.params['state'] == 'connect':
+        if not module.params['router_resource_id']:
+            module.fail_json(msg='missing required arguments: router_resource_id')
+        elif not module.params['server_resource_id']:
+            module.fail_json(msg='missing required arguments: server_resource_id')
+        else:
+            router.connect(module.params['router_resource_id'],
+                            module.params['server_resource_id'])
+    elif module.params['state'] == 'absent':
+        if module.params['router_resource_id']:
             router.destroy()
-        elif module.params['state'] == 'present':
+        else:
+            module.fail_json(msg='missing required arguments: router_resource_id')
+    elif module.params['state'] == 'present':
+        if module.params['router_resource_id']:
             ## TODO: only works with band_width_mbps
-            #router.update(module.params['resource_id'])
+            #router.update(module.params['router_resource_id'])
             module.exit_json(changed=False)
-    else:
-        # TODO: more convinient way to handle args
-        if module.params['state'] == 'absent':
-            module.fail_json(msg='missing required arguments: resource_id')
-        elif module.params['state'] == 'present':
+        else:
             router.create()
 
 
