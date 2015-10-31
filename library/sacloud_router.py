@@ -266,9 +266,13 @@ class Router():
 
     def _set_params(self, _router, router_resource_id=None):
         _router.name = self._module.params['name']
-        _router.description = self.get_desc(self._module.params['desc'])
-        _router.tags = self.get_tags(self._module.params['tags'])
-        _router.icon = self.get_icon(self._module.params['icon'])
+
+        if self._module.params['desc']:
+            _router.description = self.get_desc(self._module.params['desc'])
+        if self._module.params['tags']:
+            _router.tags = self.get_tags(self._module.params['tags'])
+        if self._module.params['icon']:
+            _router.icon = self.get_icon(self._module.params['icon'])
 
         if router_resource_id:
             if self._module.params['network_mask_len']:
