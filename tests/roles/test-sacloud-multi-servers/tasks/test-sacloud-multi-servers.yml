@@ -1,0 +1,111 @@
+---
+- name: Test if sacloud router successfully created
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: router for web
+    band_width_mbps: 100
+    network_mask_len: 28
+    desc: web
+    tags:
+      - auto-reboot
+    state: present
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test if sacloud multi servers successfully created
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: "web{{ item }}.example.com"
+    cpu: 2
+    mem: 2
+    icon: Ubuntu
+    desc: web
+    tags:
+      - auto-reboot
+      - keyboard-us
+    state: present
+  register: sacloud_server
+  with_sequence: count=2
+- name: Verify results of success
+  assert:
+    that:
+      - sacloud_server|success
+
+- name: Test if sacloud multi disks successfully created
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
+    name: "web{{ item.0 }} disk"
+    icon: Ubuntu
+    plan: ssd
+    size_gib: 20
+    desc: web
+    tags:
+      - virtio-net-pci
+      - boot-cdrom
+    config_host_name: "web{{ item.0 }}.example.com"
+    config_password: pAssw0rd
+    config_ipv4_address: "{{ item.1 }}"
+    config_ssh_key: "{{ lookup('file', '../../../keys/id_rsa.pub') }}"
+    config_network_mask_len: 28
+    config_default_route: "{{ sacloud_default_route }}"
+    state: present
+  register: sacloud_disk
+  with_together:
+    - [ 1, 2 ]
+    - [ "{{ sacloud_ipv4_addressess.0 }}", "{{ sacloud_ipv4_addressess.1 }}" ]
+- name: Verify results of success
+  assert:
+    that:
+      - sacloud_disk|success
+
+- name: Test if connect to sacloud multi servers successfully
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ item.0.ansible_facts.sacloud_disk_resource_id }}"
+    server_resource_id: "{{ item.1.ansible_facts.sacloud_server_resource_id }}"
+    state: connected
+  register: result
+  with_together:
+    - "{{ sacloud_disk.results }}"
+    - "{{ sacloud_server.results }}"
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test if connect to sacloud multi servesr successfully
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: "{{ item.ansible_facts.sacloud_server_resource_id }}"
+    state: connected
+  register: result
+  with_items:
+    - "{{ sacloud_server.results }}"
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test if sacloud multi servers successfully booted
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ item.ansible_facts.sacloud_server_resource_id }}"
+    state: running
+  register: result
+  with_items:
+    - "{{ sacloud_server.results }}"
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

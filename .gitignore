@@ -1,3 +1,5 @@
 .envrc
 hosts.yml
 knakayama.sacloud
+id_rsa*
+tests/ansible

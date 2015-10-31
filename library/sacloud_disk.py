@@ -35,19 +35,19 @@ options:
       - The sacloud access token to use.
     required: true
     default: false
-    aliases: [ 'token' ]
+    aliases: ['token']
   access_token_secret:
     description:
       - The sacloud secret access token to use.
     required: true
     default: false
-    aliases: [ 'token_secret' ]
+    aliases: ['token_secret']
   zone_id:
     description:
       - The sacloud zone id to use.
     required: false
     default: is1a
-    choices: [ 'is1a', 'is1b', 'tk1a' ]
+    choices: ['is1a', 'is1b', 'tk1a']
   name:
     description:
       - The disk name
@@ -58,11 +58,12 @@ options:
       - The disk description
     required: false
     default: default
-  resource_id:
+  disk_resource_id:
     description:
       - The resource id for the disk
     required: false
     default: false
+    aliases: ['disk_id']
   icon:
     description:
       - The disk icon
@@ -78,7 +79,7 @@ options:
       - The disk plan
     required: false
     default: ssd
-    choices: [ 'ssd', 'hdd' ]
+    choices: ['ssd', 'hdd']
   size_gib:
     description:
       - disk size (GB)
@@ -89,6 +90,13 @@ options:
       - The resource id for the archive
     required: false
     default: false
+    aliases: ['archive_id']
+  server_resource_id:
+    description:
+      - The resource id for the server
+    required: false
+    default: false
+    aliases: ['server_id']
   config_host_name:
     description:
       - The disk hostname
@@ -123,14 +131,10 @@ options:
     description:
       - On C(present), it will create if disk does not exist.
       - On C(absent) will remove a disk if it exists.
+      - On C(connected) will connect a disk to the server
     required: false
-    choices: [ 'present', 'absent' ]
+    choices: ['present', 'absent', 'connected']
     default: 'present'
-  connect:
-    description:
-      - Server resource id to connect to
-    required: false
-    default: false
 '''
 
 EXAMPLES = '''
@@ -164,7 +168,7 @@ EXAMPLES = '''
 - sacloud_disk:
     access_token: _YOUR_ACCESS_TOKEN_HERE_
     access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
-    resource_id: _DISK_RESOURCE_ID_HERE_
+    disk_resource_id: _DISK_RESOURCE_ID_HERE_
     state: absent
 '''
 
@@ -215,14 +219,14 @@ class Disk():
         except Exception, e:
             self._fail(msg='Failed to find disk icon: %s' % e)
 
-    def _get_disk_by_id(self, resource_id):
+    def _get_disk_by_id(self, disk_resource_id):
         try:
-            return self._saklient.disk.get_by_id(str(resource_id))
+            return self._saklient.disk.get_by_id(str(disk_resource_id))
         except Exception:
-            self._fail(msg='Failed to find disk: %d' % resource_id)
+            self._fail(msg='Failed to find disk: %d' % disk_resource_id)
 
-    def destroy(self):
-        _disk = self._get_disk_by_id(self._module.params['resource_id'])
+    def destroy(self, disk_resource_id):
+        _disk = self._get_disk_by_id(disk_resource_id)
 
         if self._module.check_mode:
             self._success()
@@ -263,19 +267,21 @@ class Disk():
         if self._config_param_exist():
             self._set_config(_disk)
 
-        if self._module.params['connect']:
-            self._connect(_disk, self._module.params['connect'])
-
         self._success(result='Successfully add disk: %d' % int(_disk.id),
                             ansible_facts=dict(sacloud_disk_resource_id=_disk.id))
 
-    def _connect(self, _disk, server_resource_id):
+    def connect(self, disk_resource_id, server_resource_id):
         _server = self._get_server_by_id(server_resource_id)
+        _disk = self._get_disk_by_id(disk_resource_id)
+
+        if self._module.check_mode:
+            self._success(changed=False)
 
         try:
             _disk.connect_to(_server)
         except Exception, e:
             self._fail(msg='Failed to connect disk to server: %s' % e)
+        self._success(result='Successfully connect to server')
 
     def _get_server_by_id(self, server_resource_id):
         try:
@@ -334,8 +340,8 @@ class Disk():
     def _fail(self, msg):
         self._module.fail_json(msg=msg)
 
-    def _success(self, **kwargs):
-        self._module.exit_json(changed=True, **kwargs)
+    def _success(self, changed=True, **kwargs):
+        self._module.exit_json(changed=changed, **kwargs)
 
 
 def main():
@@ -345,7 +351,7 @@ def main():
             access_token_secret=dict(required=True, aliases=['token_secret']),
             zone_id=dict(required=False, default='is1a',
                             choices=['is1a', 'is1b', 'tk1a']),
-            resource_id=dict(required=False, type='int', aliases=['disk_id']),
+            disk_resource_id=dict(required=False, type='int', aliases=['disk_id']),
             name=dict(required=False, default='default'),
             desc=dict(required=False),
             tags=dict(required=False, type='list'),
@@ -354,6 +360,8 @@ def main():
                                 type='int', aliases=['disk_size']),
             archive_resource_id=dict(required=False, type='int',
                                         aliases=['archive_id']),
+            server_resource_id=dict(required=False, type='int',
+                                        aliases=['server_id']),
             plan=dict(required=False, default='ssd',
                             choices=['ssd', 'hdd']),
             config_host_name=dict(required=False),
@@ -363,7 +371,7 @@ def main():
             config_network_mask_len=dict(required=False, type='int'),
             config_default_route=dict(required=False),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent']),
+                        choices=['present', 'absent', 'connected']),
             connect=dict(required=False, type='int')
         ),
         supports_check_mode=True
@@ -381,23 +389,27 @@ def main():
 
     disk = Disk(module, saklient)
 
-    if module.params['resource_id']:
-        if module.params['state'] == 'absent':
-            disk.destroy()
-        elif module.params['state'] == 'present':
-            # TODO: implement update
-            module.exit_json(changed=False)
+    if module.params['state'] == 'connected':
+        if not module.params['disk_resource_id']:
+            module.fail_json(msg='missing required arguments: disk_resource_id')
+        elif not module.params['server_resource_id']:
+            module.fail_json(msg='missing required arguments: server_resource_id')
+        else:
+            disk.connect(module.params['disk_resource_id'], module.params['server_resource_id'])
+    elif module.params['state'] == 'absent':
+        if module.params['disk_resource_id']:
+            disk.destroy(module.params['disk_resource_id'])
+        else:
+            module.fail_json(msg='missing required arguments: disk_resource_id')
     else:
-        # TODO: more convinient way to handle args
-        if module.params['state'] == 'absent':
-            module.fail_json(msg='missing required arguments: resource_id')
-        elif module.params['state'] == 'present':
-            if module.params['connect']:
-                disk.create()
-            elif not module.params['archive_resource_id']:
-                module.fail_json(msg='missing required arguments: archive_resource_id')
-            else:
-                disk.create()
+        if module.params['archive_resource_id']:
+            disk.create()
+        elif not module.params['disk_resource_id']:
+            module.fail_json(msg='missing required arguments: disk_resource_id')
+        else:
+            # TODO: implement update
+            #disk.update(module.params['disk_resource_id'])
+            module.exit_json(changed=False)
 
 
 from ansible.module_utils.basic import *
