@@ -48,7 +48,7 @@ options:
     required: false
     default: is1a
     choices: [ 'is1a', is1b', 'tk1a' ]
-  resource_id:
+  server_resource_id:
     description:
       - The resource id for the server
     required: false
@@ -118,7 +118,7 @@ EXAMPLES = '''
 - sacloud_server:
     access_token: _YOUR_ACCESS_TOKEN_HERE_
     access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
-    resource_id: _SERVER_RESOURCE_ID_HERE_
+    server_resource_id: _SERVER_RESOURCE_ID_HERE_
     state: absent
 '''
 
@@ -175,14 +175,14 @@ class Server():
         except Exception, e:
             self._fail(msg='Failed to find server icon: %s' % e)
 
-    def _get_server(self, resource_id):
+    def _get_server(self, server_resource_id):
         try:
-            return self._saklient.server.get_by_id(str(resource_id))
+            return self._saklient.server.get_by_id(str(server_resource_id))
         except Exception:
-            self._fail(msg='Failed to find server: %d' % resource_id)
+            self._fail(msg='Failed to find server: %d' % server_resource_id)
 
     def destroy(self):
-        _server = self._get_server(self._module.params['resource_id'])
+        _server = self._get_server(self._module.params['server_resource_id'])
 
         try:
             if _server.is_up():
@@ -194,7 +194,7 @@ class Server():
         self._success(msg='Successfully destroy server: %s' % int(_server.id))
 
     def stop(self):
-        _server = self._get_server(self._module.params['resource_id'])
+        _server = self._get_server(self._module.params['server_resource_id'])
 
         if _server.is_down():
             self._success(changed=False,
@@ -211,7 +211,7 @@ class Server():
                         % int(_server.id))
 
     def boot(self):
-        _server = self._get_server(self._module.params['resource_id'])
+        _server = self._get_server(self._module.params['server_resource_id'])
 
         if _server.is_up():
             self._success(changed=False,
@@ -238,13 +238,6 @@ class Server():
             _server.save()
         except Exception, e:
             self._fail(msg='Failed to create server: %s' % e)
-
-        #try:
-        #    _server.boot()
-        #    _server.sleep_until_up()
-        #except Exception, e:
-        #    self._fail(msg='Failed to boot server: %s' % e)
-
         self._success(result='Successfully add server: %d' % int(_server.id),
                         ansible_facts=dict(sacloud_server_resource_id=_server.id))
 
@@ -263,8 +256,8 @@ class Server():
     def _fail(self, msg):
         self._module.fail_json(msg=msg)
 
-    def _success(self, **kwargs):
-        self._module.exit_json(changed=True, **kwargs)
+    def _success(self, changed=True, **kwargs):
+        self._module.exit_json(changed=changed, **kwargs)
 
 
 def main():
@@ -274,7 +267,7 @@ def main():
             access_token_secret=dict(required=True, aliases=['token_secret']),
             zone_id=dict(required=False, default='is1a',
                             choices=['is1a', 'is1b', 'tk1a']),
-            resource_id=dict(required=False, type='int'),
+            server_resource_id=dict(required=False, type='int'),
             cpu=dict(required=False, default='1', type='int'),
             mem=dict(required=False, default='1', type='int'),
             name=dict(required=False, default='default'),
@@ -300,8 +293,8 @@ def main():
     server = Server(module, saklient)
 
     if module.params['state'] in ['absent', 'stopped', 'running'] \
-            and not module.params['resource_id']:
-        module.fail_json(msg='missing required arguments: resource_id')
+            and not module.params['server_resource_id']:
+        module.fail_json(msg='missing required arguments: server_resource_id')
 
     if module.params['state'] == 'absent':
         server.destroy()
@@ -310,7 +303,7 @@ def main():
     elif module.params['state'] == 'running':
         server.boot()
     else:
-        if module.params['resource_id']:
+        if module.params['server_resource_id']:
             # TODO: implement update
             #server.update()
             module.exit_json(changed=False)

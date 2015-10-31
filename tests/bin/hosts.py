@@ -8,7 +8,7 @@ def main():
 
     print json.dumps({
         'group': {
-            'hosts': [ 'localhost' ]
+            'hosts': ['localhost']
             },
         '_meta': {
             'hostvars': {

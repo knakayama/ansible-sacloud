@@ -2,8 +2,9 @@
 - name: Test fail if missing access_token
   sacloud_disk:
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: present
   register: result
-  ignore_errors: yes
+  ignore_errors: true
 - name: Verify results of fail if missing params
   assert:
     that:
@@ -13,25 +14,28 @@
 - name: Test fail if missing access_token_secret
   sacloud_disk:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    state: present
   register: result
-  ignore_errors: yes
+  ignore_errors: true
 - name: Verify results of fail if missing params
   assert:
     that:
       - result|failed
       - 'result.msg == "missing required arguments: access_token_secret"'
 
-- name: Test fail if missing archive_resource_id
-  sacloud_disk:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-  register: result
-  ignore_errors: yes
-- name: Verify results of fail if missing params
-  assert:
-    that:
-      - result|failed
-      - 'result.msg == "missing required arguments: archive_resource_id"'
+# TODO: implement error handling
+#- name: Test fail if missing archive_resource_id
+#  sacloud_disk:
+#    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+#    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+#    state: present
+#  register: result
+#  ignore_errors: true
+#- name: Verify results of fail if missing params
+#  assert:
+#    that:
+#      - result|failed
+#      - 'result.msg == "missing required arguments: archive_resource_id"'
 
 - name: Test if sacloud disk successfully created
   sacloud_disk:
@@ -64,50 +68,25 @@
     that:
       - result|success
 
-- name: Test if sacloud disk successfully updated
+- name: Test fail if missing disk_resource_id
   sacloud_disk:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_disk_resource_id }}"
     state: present
   register: result
-- name: Verify results of success
-  assert:
-    that:
-      - result|success
-
-- name: Test fail if non exist resource id
-  sacloud_disk:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: 1
-    state: absent
-  register: result
-  ignore_errors: yes
-- name: Verify results of fail if non exist resource id
-  assert:
-    that:
-      - result|failed
-
-- name: Test fail if state is absent and no resource id
-  sacloud_disk:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    state: absent
-  register: result
-  ignore_errors: yes
+  ignore_errors: true
 - name: Verify results of fail if missing params
   assert:
     that:
       - result|failed
-      - 'result.msg == "missing required arguments: resource_id"'
+      - 'result.msg == "missing required arguments: disk_resource_id"'
 
-- name: Test if sacloud disk successfully removed
+- name: Test if sacloud disk successfully updated
   sacloud_disk:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_disk_resource_id }}"
-    state: absent
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    state: present
   register: result
 - name: Verify results of success
   assert:
@@ -118,66 +97,94 @@
   sacloud_server:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    state: present
-- name: Test if connect to sacloud server successfully
-  sacloud_disk:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
-    connect: "{{ sacloud_server_resource_id }}"
+    name: ubuntu14_LTS_64
     zone_id: is1a
-    name: a test disk
+    cpu: 2
+    mem: 2
     icon: Ubuntu
-    plan: ssd
-    size_gib: 20
     desc: |-
       this
       is
       a
-      disk
+      server
     tags:
-      - virtio-net-pci
-      - boot-cdrom
-    config_host_name: example.com
-    config_password: pAssw0rd
-    config_ipv4_address: 192.168.0.2
-    config_ssh_key: "{{ lookup('file', '../../../keys/id_rsa.pub') }}"
-    config_network_mask_len: 28
-    config_default_route: 192.168.0.1
+      - auto-reboot
+      - keyboard-us
     state: present
+
+- name: Test fail if non exist disk resource id
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: 1
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: absent
   register: result
-- name: Verify results of success
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
   assert:
     that:
-      - result|success
+      - result|failed
+      - 'result.msg == "Failed to find disk: 1"'
 
 - name: Test fail if non exist server resource id
   sacloud_disk:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
-    connect: 1
-    state: present
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: 1
+    state: connected
   register: result
-  ignore_errors: yes
+  ignore_errors: true
 - name: Verify results of fail if non exist server resource id
   assert:
     that:
       - result|failed
       - 'result.msg == "Failed to find server: 1"'
 
+- name: Test if connect to sacloud server successfully
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test fail if state is absent and no disk resource id
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: absent
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: disk_resource_id"'
+
+- name: Test if sacloud disk successfully removed
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    state: absent
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
 # BUG?
 - name: Teardown sacloud server
   sacloud_server:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
     state: absent
-  ignore_errors: yes
-- name: Teardown sacloud disk
-  sacloud_disk:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    resource_id: "{{ sacloud_disk_resource_id }}"
-    state: absent
-  ignore_errors: yes
+  ignore_errors: true

@@ -35,19 +35,19 @@ options:
       - The sacloud access token to use.
     required: true
     default: false
-    aliases: [ 'token' ]
+    aliases: ['token']
   access_token_secret:
     description:
       - The sacloud secret access token to use.
     required: true
     default: false
-    aliases: [ 'token_secret' ]
+    aliases: ['token_secret']
   zone_id:
     description:
       - The sacloud zone id to use.
     required: false
     default: 'is1a'
-    choices: [ 'is1a', 'is1b', 'tk1a']
+    choices: ['is1a', 'is1b', 'tk1a']
   name:
     description:
       - The router name
@@ -84,9 +84,9 @@ options:
     description:
       - On C(present), it will create if router does not exist.
       - On C(absent) will remove a router if it exists.
-      - On C(connect) will connect to server.
+      - On C(connected) will connect to server.
     required: false
-    choices: ['present', 'absent', 'connect']
+    choices: ['present', 'absent', 'connected']
     default: 'present'
   server_resource_id:
     description:
@@ -180,7 +180,7 @@ class Router():
         _router = self.get_router_by_id(self._module.params['router_resource_id'])
 
         if self._module.check_mode:
-            self._success(changed=True)
+            self._success()
         try:
             _router.destroy()
         except Exception, e:
@@ -225,11 +225,14 @@ class Router():
         _router = self._get_router_by_id(router_resource_id)
         _iface = self._get_iface_by_id(server_resource_id)
 
+        if self._module.check_mode:
+            self._success(changed=False)
+
         try:
-            return _iface.connect_to_swytch(_router.get_swytch())
+            _iface.connect_to_swytch(_router.get_swytch())
         except Exception, e:
-            self._fail('Failed to connect to sywitch: %s' % e)
-        self._success(result='Successfully connect router: %s' % _router.id)
+            self._fail(msg='Failed to connect to sywitch: %s' % e)
+        self._success(result='Successfully connect to router')
 
     def _get_router_by_id(self, router_resource_id):
         try:
@@ -285,8 +288,8 @@ class Router():
     def _fail(self, msg):
         self._module.fail_json(msg=msg)
 
-    def _success(self, **kwargs):
-        self._module.exit_json(changed=True, **kwargs)
+    def _success(self, changed=True, **kwargs):
+        self._module.exit_json(changed=changed, **kwargs)
 
 
 def main():
@@ -308,7 +311,7 @@ def main():
                                         default=28, type='int',
                                         choices=[26, 27, 28]),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent', 'connect']),
+                        choices=['present', 'absent', 'connected']),
             server_resource_id=dict(required=False, type='int')
         ),
         supports_check_mode=True
@@ -327,7 +330,7 @@ def main():
     router = Router(module, saklient)
 
     # TODO: more convinient way to handle args
-    if module.params['state'] == 'connect':
+    if module.params['state'] == 'connected':
         if not module.params['router_resource_id']:
             module.fail_json(msg='missing required arguments: router_resource_id')
         elif not module.params['server_resource_id']:
