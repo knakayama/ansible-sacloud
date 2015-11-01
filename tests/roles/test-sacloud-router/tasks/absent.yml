@@ -1,0 +1,38 @@
+---
+- name: Test fail if non exist resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: 1
+    state: absent
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist router_resource_id
+  assert:
+    that:
+      - result|failed
+
+- name: Test fail if state is absent and no resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: absent
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: router_resource_id"'
+
+- name: Test if sacloud router successfully removed
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    state: absent
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

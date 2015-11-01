@@ -1,0 +1,43 @@
+---
+- name: Test fail if non exist disk resource id
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: 1
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find disk: 1"'
+
+- name: Test fail if non exist server resource id
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: 1
+    state: connected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist server resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find server: 1"'
+
+- name: Test if connect to sacloud server successfully
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

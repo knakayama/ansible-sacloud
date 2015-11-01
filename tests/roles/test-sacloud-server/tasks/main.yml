@@ -1,2 +1,5 @@
 ---
-- include: test-sacloud-server.yml
+- include: present.yml
+- include: running.yml
+- include: stopped.yml
+- include: absent.yml

@@ -1,0 +1,61 @@
+---
+- name: Test fail if missing access_token
+  sacloud_router:
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: access_token"'
+
+- name: Test fail if missing access_token_secret
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: access_token_secret"'
+
+- name: Test if sacloud router successfully created
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    zone_id: is1a
+    name: a test router
+    band_width_mbps: 100
+    network_mask_len: 28
+    icon: DNS
+    desc: |-
+      this
+      is
+      a
+      router
+    tags:
+      - auto-reboot
+      - boot-network
+    state: present
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test if sacloud router successfully updated
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    band_width_mbps: 500
+    state: present
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

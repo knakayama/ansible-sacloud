@@ -1,0 +1,83 @@
+---
+- name: Setup sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: ubuntu14_LTS_64
+    zone_id: is1a
+    cpu: 2
+    mem: 2
+    icon: Ubuntu
+    desc: |-
+      this
+      is
+      a
+      server
+    tags:
+      - auto-reboot
+      - keyboard-us
+    state: present
+
+- name: Test fail if state is connect and no router resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: router_resource_id"'
+
+- name: Test fail if state is connect and no server resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    state: connected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: server_resource_id"'
+
+- name: Test fail if state is connect and no exist server resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: 1
+    state: connected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find server iface: 1"'
+
+- name: Test if connect to sacloud server successfully
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Teardown sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: absent
+  ignore_errors: true

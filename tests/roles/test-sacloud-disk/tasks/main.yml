@@ -1,2 +1,4 @@
 ---
-- include: test-sacloud-disk.yml
+- include: present.yml
+- include: connected.yml
+- include: absent.yml
