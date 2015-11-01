@@ -1,0 +1,34 @@
+---
+- name: Test fail if state is absent and no disk resource id
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: absent
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: disk_resource_id"'
+
+- name: Test if sacloud disk successfully removed
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    state: absent
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+# BUG?
+- name: Teardown sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: absent
+  ignore_errors: true
