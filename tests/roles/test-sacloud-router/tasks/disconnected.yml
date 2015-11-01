@@ -1,0 +1,71 @@
+---
+- name: Test fail if missing server_resource_id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    iface_resource_id: "{{ sacloud_iface_resource_id }}"
+    state: disconnected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: server_resource_id"'
+
+- name: Test fail if non exist server resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: 1
+    iface_resource_id: "{{ sacloud_iface_resource_id }}"
+    state: disconnected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find server: 1"'
+
+- name: Test fail if missing iface_resource_id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: disconnected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: iface_resource_id"'
+
+- name: Test fail if non exist iface resource id
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    iface_resource_id: 1
+    state: disconnected
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist disk resource id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find iface: 1"'
+
+- name: Test if disconnect router from sacloud server successfully
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    iface_resource_id: "{{ sacloud_iface_resource_id }}"
+    state: disconnected
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

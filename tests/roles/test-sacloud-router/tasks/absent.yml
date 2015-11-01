@@ -1,4 +1,12 @@
 ---
+- name: Teardown sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: absent
+  ignore_errors: true
+
 - name: Test fail if non exist resource id
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"

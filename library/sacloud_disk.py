@@ -132,8 +132,9 @@ options:
       - On C(present), it will create if disk does not exist.
       - On C(absent) will remove a disk if it exists.
       - On C(connected) will connect a disk to the server
+      - On C(disconnected) will disconnect a disk from the server
     required: false
-    choices: ['present', 'absent', 'connected']
+    choices: ['present', 'absent', 'connected', 'disconnected']
     default: 'present'
 '''
 
@@ -270,6 +271,18 @@ class Disk():
         self._success(result='Successfully add disk: %d' % int(_disk.id),
                             ansible_facts=dict(sacloud_disk_resource_id=_disk.id))
 
+    def disconnect(self, disk_resource_id):
+        _disk = self._get_disk_by_id(disk_resource_id)
+
+        if self._module.check_mode:
+            self._success(changed=False)
+
+        try:
+            _disk.disconnect()
+        except Exception, e:
+            self._fail(msg='Failed to disconnect disk from server: %s' % e)
+        self._success(result='Successfully disconnect disk')
+
     def connect(self, disk_resource_id, server_resource_id):
         _server = self._get_server_by_id(server_resource_id)
         _disk = self._get_disk_by_id(disk_resource_id)
@@ -286,10 +299,10 @@ class Disk():
     def _get_server_by_id(self, server_resource_id):
         try:
             return self._saklient.server.get_by_id(str(server_resource_id))
-        except Exception, e:
+        except Exception:
             # FIXME: UnicodeEncodeError
             #self._fail('Failed to find server: %s' % e)
-            self._fail('Failed to find server: %d' % server_resource_id)
+            self._fail(msg='Failed to find server: %d' % server_resource_id)
 
     def _set_params(self, _disk):
         _disk.name = self._module.params['name']
@@ -371,7 +384,7 @@ def main():
             config_network_mask_len=dict(required=False, type='int'),
             config_default_route=dict(required=False),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent', 'connected']),
+                        choices=['present', 'absent', 'connected', 'disconnected']),
             connect=dict(required=False, type='int')
         ),
         supports_check_mode=True
@@ -396,6 +409,11 @@ def main():
             module.fail_json(msg='missing required arguments: server_resource_id')
         else:
             disk.connect(module.params['disk_resource_id'], module.params['server_resource_id'])
+    elif module.params['state'] == 'disconnected':
+        if module.params['disk_resource_id']:
+            disk.disconnect(module.params['disk_resource_id'])
+        else:
+            module.fail_json(msg='missing required arguments: disk_resource_id')
     elif module.params['state'] == 'absent':
         if module.params['disk_resource_id']:
             disk.destroy(module.params['disk_resource_id'])
