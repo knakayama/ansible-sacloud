@@ -3,4 +3,5 @@
 - include: connected.yml
 - include: running.yml
 - include: stopped.yml
+- include: disconnected.yml
 - include: absent.yml

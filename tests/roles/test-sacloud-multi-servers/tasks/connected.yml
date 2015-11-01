@@ -22,10 +22,10 @@
     router_resource_id: "{{ sacloud_router_resource_id }}"
     server_resource_id: "{{ item.ansible_facts.sacloud_server_resource_id }}"
     state: connected
-  register: result
+  register: sacloud_iface
   with_items:
     - "{{ sacloud_server.results }}"
 - name: Verify results of success
   assert:
     that:
-      - result|success
+      - sacloud_iface|success

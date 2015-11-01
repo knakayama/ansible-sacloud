@@ -1,0 +1,30 @@
+---
+- name: Test if disconnect multi disks from sacloud servers successfully
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ item.ansible_facts.sacloud_disk_resource_id }}"
+    state: disconnected
+  register: result
+  with_items:
+    - "{{ sacloud_disk.results }}"
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
+- name: Test if disconnect multi servers from sacloud router successfully
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ item.0.ansible_facts.sacloud_server_resource_id }}"
+    iface_resource_id: "{{ item.1.ansible_facts.sacloud_iface_resource_id }}"
+    state: disconnected
+  register: result
+  with_together:
+    - "{{ sacloud_server.results }}"
+    - "{{ sacloud_iface.results }}"
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

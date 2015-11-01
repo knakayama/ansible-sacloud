@@ -85,12 +85,18 @@ options:
       - On C(present), it will create if router does not exist.
       - On C(absent) will remove a router if it exists.
       - On C(connected) will connect to server.
+      - On C(disconnected) will disconnect server from router.
     required: false
-    choices: ['present', 'absent', 'connected']
+    choices: ['present', 'absent', 'connected', 'disconnected']
     default: 'present'
   server_resource_id:
     description:
       - The resource id for the server
+    required: false
+    default: false
+  iface_resource_id:
+    description:
+      - The resource id for the server iface
     required: false
     default: false
 '''
@@ -220,10 +226,46 @@ class Router():
                 sacloud_ipv4_addressess=ipv4_addressesse
                 )
 
+    # TODO: implement iface.destroy
+    def disconnect(self, server_resource_id, iface_resource_id):
+        _iface = self._get_iface_by_id(server_resource_id, iface_resource_id)
+
+        if self._module.check_mode:
+            self._success(changed=False)
+
+        try:
+            _iface.disconnect_from_swytch()
+        except Exception, e:
+            self._fail(msg='Failed to disconnect from sywitch: %s' % e)
+        self._success(result='Successfully disconnect from sywitch')
+
+    def _get_iface_by_id(self, server_resource_id, iface_resource_id):
+        for iface in self._get_ifaces_by_id(server_resource_id):
+            if iface.id == str(iface_resource_id):
+                return iface
+        self._fail(msg='Failed to find iface: %d' % iface_resource_id)
+
+    def _get_ifaces_by_id(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
+
+        try:
+            return _server.get_ifaces()
+        except Exception:
+            # FIXME: UnicodeEncodeError
+            self._fail(msg='Failed to find server ifaces: %d' % server_resource_id)
+
+    def _get_server_by_id(self, server_resource_id):
+        try:
+            return self._saklient.server.get_by_id(str(server_resource_id))
+        except Exception:
+            # FIXME: UnicodeEncodeError
+            #self._fail('Failed to find server: %s' % e)
+            self._fail(msg='Failed to find server: %d' % server_resource_id)
+
     # TODO: implement shared segment
     def connect(self, router_resource_id, server_resource_id):
         _router = self._get_router_by_id(router_resource_id)
-        _iface = self._get_iface_by_id(server_resource_id)
+        _iface = self._add_iface_by_id(server_resource_id)
 
         if self._module.check_mode:
             self._success(changed=False)
@@ -232,7 +274,8 @@ class Router():
             _iface.connect_to_swytch(_router.get_swytch())
         except Exception, e:
             self._fail(msg='Failed to connect to sywitch: %s' % e)
-        self._success(result='Successfully connect to router')
+        self._success(result='Successfully connect to router %d' % int(_iface.id),
+                        ansible_facts=dict(sacloud_iface_resource_id=_iface.id))
 
     def _get_router_by_id(self, router_resource_id):
         try:
@@ -240,13 +283,15 @@ class Router():
         except Exception, e:
             self._fail(msg='Failed to find router: %s' % e)
 
-    def _get_iface_by_id(self, server_resource_id):
+    def _add_iface_by_id(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
+
         try:
-            return self._saklient.server.get_by_id(str(server_resource_id)).add_iface()
+            return _server.add_iface()
         except Exception, e:
             # FIXME: UnicodeEncodeError
             #self._fail(msg='Failed to find server iface: %s' % e)
-            self._fail(msg='Failed to find server iface: %d' % server_resource_id)
+            self._fail(msg='Failed to add server iface: %d' % server_resource_id)
 
     def update(self, router_resource_id):
         _router = self.get_router_by_id(router_resource_id)
@@ -315,8 +360,9 @@ def main():
                                         default=28, type='int',
                                         choices=[26, 27, 28]),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent', 'connected']),
-            server_resource_id=dict(required=False, type='int')
+                        choices=['present', 'absent', 'connected', 'disconnected']),
+            server_resource_id=dict(required=False, type='int'),
+            iface_resource_id=dict(required=False, type='int')
         ),
         supports_check_mode=True
     )
@@ -342,6 +388,14 @@ def main():
         else:
             router.connect(module.params['router_resource_id'],
                             module.params['server_resource_id'])
+    elif module.params['state'] == 'disconnected':
+        if not module.params['server_resource_id']:
+            module.fail_json(msg='missing required arguments: server_resource_id')
+        elif not module.params['iface_resource_id']:
+            module.fail_json(msg='missing required arguments: iface_resource_id')
+        else:
+            router.disconnect(module.params['server_resource_id'],
+                                module.params['iface_resource_id'])
     elif module.params['state'] == 'absent':
         if module.params['router_resource_id']:
             router.destroy()

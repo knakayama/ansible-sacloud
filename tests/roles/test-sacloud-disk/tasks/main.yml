@@ -1,4 +1,5 @@
 ---
 - include: present.yml
 - include: connected.yml
+- include: disconnected.yml
 - include: absent.yml

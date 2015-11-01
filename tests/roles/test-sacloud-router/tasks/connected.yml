@@ -59,7 +59,7 @@
   assert:
     that:
       - result|failed
-      - 'result.msg == "Failed to find server iface: 1"'
+      - 'result.msg == "Failed to find server: 1"'
 
 - name: Test if connect to sacloud server successfully
   sacloud_router:
@@ -73,11 +73,3 @@
   assert:
     that:
       - result|success
-
-- name: Teardown sacloud server
-  sacloud_server:
-    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
-    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    server_resource_id: "{{ sacloud_server_resource_id }}"
-    state: absent
-  ignore_errors: true
