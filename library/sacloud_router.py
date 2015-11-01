@@ -216,14 +216,14 @@ class Router():
         default_route = _swytch.dump()['Subnets'][0]['DefaultRoute']
 
         try:
-            ipv4_addressesse = _swytch.collect_unused_ipv4_addresses()
+            ipv4_addresses = _swytch.collect_unused_ipv4_addresses()
         except Exception, e:
             self._fail(msg='Failed to collect unused ipv4 address: %s' % e)
 
         return dict(
                 sacloud_router_resource_id=_router.id,
                 sacloud_default_route=default_route,
-                sacloud_ipv4_addressess=ipv4_addressesse
+                sacloud_ipv4_addresses=ipv4_addresses
                 )
 
     # TODO: implement iface.destroy

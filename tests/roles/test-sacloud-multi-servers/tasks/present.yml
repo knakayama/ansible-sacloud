@@ -59,7 +59,7 @@
   register: sacloud_disk
   with_together:
     - [ 1, 2 ]
-    - [ "{{ sacloud_ipv4_addressess.0 }}", "{{ sacloud_ipv4_addressess.1 }}" ]
+    - [ "{{ sacloud_ipv4_addresses.0 }}", "{{ sacloud_ipv4_addresses.1 }}" ]
 - name: Verify results of success
   assert:
     that:
