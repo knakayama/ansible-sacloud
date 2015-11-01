@@ -20,14 +20,14 @@
     that:
       - result|failed
 
-- name: Test fail if state is absent and no resource id
+- name: Test fail if missing router_resource_id
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
     state: absent
   register: result
   ignore_errors: true
-- name: Verify results of fail if missing params
+- name: Verify results of fail if missing router_resource_id
   assert:
     that:
       - result|failed

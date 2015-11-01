@@ -142,7 +142,7 @@ class Router():
         self._module = module
         self._saklient = saklient
 
-    def get_desc(self, desc):
+    def _get_desc(self, desc):
         if desc:
             return self._str2triple_quoted_str(desc)
         else:
@@ -152,7 +152,7 @@ class Router():
         return '''%s''' % desc
 
     # FIXME: don't work
-    def get_tags(self, tags):
+    def _get_tags(self, tags):
         if tags:
             return self._parse_tags(tags)
         else:
@@ -161,7 +161,7 @@ class Router():
     def _parse_tags(self, tags):
         return [''.join(['@', x]) for x in tags]
 
-    def get_icon(self, icon):
+    def _get_icon(self, icon):
         if icon:
             return self._get_icon_with_name_like(icon)
         else:
@@ -176,14 +176,14 @@ class Router():
         except Exception, e:
             self._fail(msg='Failed to find router icon: %s' % e)
 
-    def get_router_by_id(self, router_resource_id):
+    def _get_router_by_id(self, router_resource_id):
         try:
             return self._saklient.router.get_by_id(str(router_resource_id))
         except Exception:
             self._fail(msg='Failed to find router: %s' % router_resource_id)
 
     def destroy(self):
-        _router = self.get_router_by_id(self._module.params['router_resource_id'])
+        _router = self._get_router_by_id(self._module.params['router_resource_id'])
 
         if self._module.check_mode:
             self._success()
@@ -277,12 +277,6 @@ class Router():
         self._success(result='Successfully connect to router %d' % int(_iface.id),
                         ansible_facts=dict(sacloud_iface_resource_id=_iface.id))
 
-    def _get_router_by_id(self, router_resource_id):
-        try:
-            return self._saklient.router.get_by_id(str(router_resource_id))
-        except Exception, e:
-            self._fail(msg='Failed to find router: %s' % e)
-
     def _add_iface_by_id(self, server_resource_id):
         _server = self._get_server_by_id(server_resource_id)
 
@@ -294,7 +288,7 @@ class Router():
             self._fail(msg='Failed to add server iface: %d' % server_resource_id)
 
     def update(self, router_resource_id):
-        _router = self.get_router_by_id(router_resource_id)
+        _router = self._get_router_by_id(router_resource_id)
 
         if self._module.check_mode:
             self._success(changed=True)
@@ -313,11 +307,11 @@ class Router():
         _router.name = self._module.params['name']
 
         if self._module.params['desc']:
-            _router.description = self.get_desc(self._module.params['desc'])
+            _router.description = self._get_desc(self._module.params['desc'])
         if self._module.params['tags']:
-            _router.tags = self.get_tags(self._module.params['tags'])
+            _router.tags = self._get_tags(self._module.params['tags'])
         if self._module.params['icon']:
-            _router.icon = self.get_icon(self._module.params['icon'])
+            _router.icon = self._get_icon(self._module.params['icon'])
 
         if router_resource_id:
             if self._module.params['network_mask_len']:

@@ -384,8 +384,7 @@ def main():
             config_network_mask_len=dict(required=False, type='int'),
             config_default_route=dict(required=False),
             state=dict(required=False, default='present',
-                        choices=['present', 'absent', 'connected', 'disconnected']),
-            connect=dict(required=False, type='int')
+                        choices=['present', 'absent', 'connected', 'disconnected'])
         ),
         supports_check_mode=True
     )
