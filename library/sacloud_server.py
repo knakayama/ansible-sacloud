@@ -85,10 +85,10 @@ options:
     default: false
   state:
     description:
-      - On C(present), it will create if host does not exist.
-      - On C(absent) will remove a host if it exists.
-      - On C(stopped) will stop a host if it exists.
-      - On C(running) check if a host exists and is running.
+      - On C(present), it will create if server does not exist.
+      - On C(absent) will remove a server if it exists.
+      - On C(stopped) will stop a server if it exists.
+      - On C(running) check if a server exists and is running.
     required: false
     choices: [ 'present', 'absent', 'stopped', 'running' ]
     default: 'present'
@@ -96,7 +96,7 @@ options:
 
 EXAMPLES = '''
 # Create a server
-- sacloud_host:
+- sacloud_server:
     access_token: _YOUR_ACCESS_TOKEN_HERE_
     access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
     name: ubuntu14_LTS_64
