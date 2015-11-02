@@ -64,3 +64,39 @@
   assert:
     that:
       - sacloud_disk|success
+
+- name: Test if sacloud load balancer successfully created
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    zone_id: is1a
+    name: a test load balancer
+    icon: Wall
+    desc: |-
+      this
+      is
+      a
+      load balancer
+    tags:
+      - load balancer
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    vrid: 1
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.2 }}"
+    high_spec: false
+    virtual_ip: "{{ sacloud_ipv4_addresses.3 }}"
+    port: 80
+    delay_loop: 10
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    lbserver_port: 80
+    lbserver_protocol: http
+    lbserver_path: /index.html
+    lbserver_response: 200
+    state: present
+  register: result
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|success

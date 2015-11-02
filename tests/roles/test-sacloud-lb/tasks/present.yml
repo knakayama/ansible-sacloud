@@ -1,0 +1,153 @@
+---
+- name: Test fail if missing access_token
+  sacloud_lb:
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: access_token"'
+
+- name: Test fail if missing access_token_secret
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: access_token_secret"'
+
+- name: Test fail if missing router_resource_id
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    vrid: 1
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    high_spec: false
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: router_resource_id"'
+
+- name: Test fail if missing vrid
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    high_spec: false
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: vrid"'
+
+- name: Test fail if missing real_ips
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    vrid: 1
+    high_spec: false
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: real_ips"'
+
+- name: Test fail if missing lbserver_ips
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    vrid: 1
+    high_spec: false
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: lbserver_ips"'
+
+- name: Test fail if non exist router_resource_id
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: 1
+    vrid: 1
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    high_spec: false
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+    state: present
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing params
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "Failed to find router: 1"'
+
+- name: Test if sacloud load balancer successfully created
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    zone_id: is1a
+    name: a test load balancer
+    icon: Wall
+    desc: |-
+      this
+      is
+      a
+      load balancer
+    tags:
+      - load balancer
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    vrid: 1
+    real_ips:
+      - "{{ sacloud_ipv4_addresses.1 }}"
+    high_spec: false
+    virtual_ip: "{{ sacloud_ipv4_addresses.2 }}"
+    port: 80
+    delay_loop: 10
+    lbserver_ips:
+      - "{{ sacloud_ipv4_addresses.0 }}"
+    lbserver_port: 80
+    lbserver_protocol: http
+    lbserver_path: /index.html
+    lbserver_response: 200
+    state: present
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

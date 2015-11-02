@@ -1,0 +1,39 @@
+---
+- name: Test fail if missing lb_resource_id
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    state: stopped
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if missing router_resource_id
+  assert:
+    that:
+      - result|failed
+      - 'result.msg == "missing required arguments: lb_resource_id"'
+
+- name: Test fail if non exist lb_resource_id
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    lb_resource_id: 1
+    state: stopped
+  register: result
+  ignore_errors: true
+- name: Verify results of fail if non exist router_resource_id
+  assert:
+    that:
+      - result|failed
+      - '"Failed to find load balancer" in result.msg'
+
+- name: Test if sacloud load balancer successfully stopped
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    lb_resource_id: "{{ sacloud_lb_resource_id }}"
+    state: stopped
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
