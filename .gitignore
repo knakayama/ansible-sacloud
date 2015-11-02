@@ -3,3 +3,5 @@ hosts.yml
 knakayama.sacloud
 id_rsa*
 tests/ansible
+tests/host_vars/*
+!tests/host_vars/.gitkeep

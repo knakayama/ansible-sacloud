@@ -1,0 +1,84 @@
+---
+- name: Setup sacloud router
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: a test router
+    band_width_mbps: 100
+    network_mask_len: 28
+    icon: DNS
+    desc: |-
+      this
+      is
+      a
+      router
+    tags:
+      - auto-reboot
+      - boot-network
+    state: present
+
+- name: Setup sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    name: ubuntu14_LTS_64
+    cpu: 2
+    mem: 2
+    icon: Ubuntu
+    desc: |-
+      this
+      is
+      a
+      server
+    tags:
+      - auto-reboot
+      - keyboard-us
+    state: present
+
+- name: Setup sacloud disk
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
+    name: a test disk
+    icon: Ubuntu
+    plan: ssd
+    size_gib: 20
+    desc: |-
+      this
+      is
+      a
+      disk
+    tags:
+      - virtio-net-pci
+      - boot-cdrom
+    config_host_name: web01.example.com
+    config_password: pAssw0rd
+    config_ipv4_address: "{{ sacloud_ipv4_addresses.0 }}"
+    config_ssh_key: "{{ lookup('file', '../../../keys/id_rsa.pub') }}"
+    config_network_mask_len: 28
+    config_default_route: "{{ sacloud_default_route }}"
+    state: present
+
+- name: Setup sacloud disk connection with server
+  sacloud_disk:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    disk_resource_id: "{{ sacloud_disk_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+
+- name: Setup sacloud router connection with server
+  sacloud_router:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    router_resource_id: "{{ sacloud_router_resource_id }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: connected
+
+- name: Setup booting sacloud server
+  sacloud_server:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    server_resource_id: "{{ sacloud_server_resource_id }}"
+    state: running

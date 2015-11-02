@@ -1,0 +1,72 @@
+---
+# TODO: block module
+- name: Setup web
+  become: true
+  remote_user: ubuntu
+  connection: ssh
+  apt:
+    name: nginx
+    update_cache: yes
+    state: present
+  delegate_to: "{{ item.ip }}"
+  with_items:
+    - { ip: "{{ sacloud_ipv4_addresses.0 }}" }
+    - { ip: "{{ sacloud_ipv4_addresses.1 }}" }
+
+- name: Setup sysctl
+  become: true
+  remote_user: ubuntu
+  connection: ssh
+  sysctl:
+    name: "{{ item.0.name }}"
+    value: "{{ item.0.value }}"
+    state: present
+  delegate_to: "{{ item.1.ip }}"
+  with_nested:
+    - [ { name: net.ipv4.conf.all.arp_ignore, value: 1 }, { name: net.ipv4.conf.all.arp_announce , value: 2 } ]
+    - [ { ip: "{{ sacloud_ipv4_addresses.0 }}" }, { ip: "{{ sacloud_ipv4_addresses.1 }}" } ]
+
+- name: Setup loopback (lineinfile)
+  become: true
+  remote_user: ubuntu
+  connection: ssh
+  lineinfile:
+    dest: /etc/network/interfaces
+    regexp: "^iface lo inet loopback"
+    line: "source /etc/network/interfaces.d/lo.cfg"
+    backrefs: yes
+    state: present
+  delegate_to: "{{ item.ip }}"
+  with_items:
+    - { ip: "{{ sacloud_ipv4_addresses.0 }}" }
+    - { ip: "{{ sacloud_ipv4_addresses.1 }}" }
+
+- name: Setup loopback (template)
+  become: true
+  remote_user: ubuntu
+  connection: ssh
+  template:
+    src: lo.cfg.j2
+    dest: /etc/network/interfaces.d/lo.cfg
+    owner: root
+    group: root
+    mode: 0644
+  delegate_to: "{{ item.ip }}"
+  with_items:
+    - { ip: "{{ sacloud_ipv4_addresses.0 }}" }
+    - { ip: "{{ sacloud_ipv4_addresses.1 }}" }
+
+- name: Setup loopback (shell)
+  become: true
+  remote_user: ubuntu
+  connection: ssh
+  shell: |
+    ifdown lo && ifup lo
+  delegate_to: "{{ item.ip }}"
+  with_items:
+    - { ip: "{{ sacloud_ipv4_addresses.0 }}" }
+    - { ip: "{{ sacloud_ipv4_addresses.1 }}" }
+
+- name: Test if sacloud virtual ip successfully accessed
+  uri:
+    url: http://{{ sacloud_ipv4_addresses.3 }}

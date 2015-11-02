@@ -27,6 +27,18 @@
     that:
       - result|success
 
+- name: Test if sacloud load balancer successfully removed
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    lb_resource_id: "{{ sacloud_lb_resource_id }}"
+    state: absent
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success
+
 - name: Test if sacloud router successfully removed
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"

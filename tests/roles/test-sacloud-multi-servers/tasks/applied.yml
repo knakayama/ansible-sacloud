@@ -1,0 +1,12 @@
+---
+- name: Test if sacloud load balancer successfully applied
+  sacloud_lb:
+    access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
+    access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
+    lb_resource_id: "{{ sacloud_lb_resource_id }}"
+    state: applied
+  register: result
+- name: Verify results of success
+  assert:
+    that:
+      - result|success

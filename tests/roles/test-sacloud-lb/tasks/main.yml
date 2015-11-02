@@ -1,9 +1,9 @@
 ---
+- include: setup.yml
 - include: present.yml
-- include: connected.yml
+- include: stopped.yml
 - include: running.yml
 - include: applied.yml
 - include: http.yml
-- include: stopped.yml
-- include: disconnected.yml
 - include: absent.yml
+- include: teardown.yml
