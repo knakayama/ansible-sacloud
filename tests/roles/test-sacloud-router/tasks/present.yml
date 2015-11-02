@@ -27,7 +27,7 @@
   sacloud_router:
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-    zone_id: is1a
+    zone: is1a
     name: a test router
     band_width_mbps: 100
     network_mask_len: 28

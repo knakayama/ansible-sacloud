@@ -42,9 +42,9 @@ options:
     required: true
     default: false
     aliases: ['token_secret']
-  zone_id:
+  zone:
     description:
-      - The sacloud zone id to use.
+      - The sacloud zone to use.
     required: false
     default: is1a
     choices: ['is1a', 'is1b', 'tk1a']
@@ -144,7 +144,7 @@ EXAMPLES = '''
     access_token: _YOUR_ACCESS_TOKEN_HERE_
     access_token_secret: _YOUR_ACCESS_TOKEN_SECRET_HERE_
     archive_resource_id: __ARCHIVE_RESOURCE_ID_HERE_
-    zone_id: tk1a
+    zone: tk1a
     name: a test disk
     icon: Ubuntu
     plan: ssd
@@ -362,7 +362,7 @@ def main():
         argument_spec=dict(
             access_token=dict(required=True, aliases=['token']),
             access_token_secret=dict(required=True, aliases=['token_secret']),
-            zone_id=dict(required=False, default='is1a',
+            zone=dict(required=False, default='is1a',
                             choices=['is1a', 'is1b', 'tk1a']),
             disk_resource_id=dict(required=False, type='int', aliases=['disk_id']),
             name=dict(required=False, default='default'),
@@ -395,7 +395,7 @@ def main():
     try:
         saklient = API.authorize(module.params['access_token'],
                                 module.params['access_token_secret'],
-                                module.params['zone_id'])
+                                module.params['zone'])
     except Exception, e:
         module.fail_json(msg='Failed to access sacloud: %s' % e)
 

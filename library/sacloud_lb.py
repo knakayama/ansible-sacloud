@@ -42,9 +42,9 @@ options:
     required: true
     default: false
     aliases: ['token_secret']
-  zone_id:
+  zone:
     description:
-      - The sacloud zone id to use.
+      - The sacloud zone to use.
     required: false
     default: 'is1a'
     choices: ['is1a', 'is1b', 'tk1a']
@@ -146,7 +146,7 @@ EXAMPLES = '''
 sacloud_lb:
   access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
   access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
-  zone_id: is1a
+  zone: is1a
   name: a test load balancer
   icon: Wall
   desc: |-
@@ -370,7 +370,7 @@ def main():
         argument_spec=dict(
             access_token=dict(required=True, aliases=['token']),
             access_token_secret=dict(required=True, aliases=['token_secret']),
-            zone_id=dict(required=False, default='is1a',
+            zone=dict(required=False, default='is1a',
                             choices=['is1a', 'is1b', 'tk1a']),
             router_resource_id=dict(required=False, type='int'),
             lb_resource_id=dict(required=False, type='int'),
@@ -403,7 +403,7 @@ def main():
     try:
         saklient = API.authorize(module.params['access_token'],
                                 module.params['access_token_secret'],
-                                module.params['zone_id'])
+                                module.params['zone'])
     except Exception, e:
         module.fail_json(msg='Failed to access sacloud: %s' % e)
 

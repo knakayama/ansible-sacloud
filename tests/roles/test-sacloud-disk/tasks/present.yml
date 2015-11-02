@@ -42,7 +42,7 @@
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
     archive_resource_id: "{{ lookup('env', 'ARCHIVE_RESOURCE_ID') }}"
-    zone_id: is1a
+    zone: is1a
     name: a test disk
     icon: Ubuntu
     plan: ssd
@@ -98,7 +98,7 @@
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
     name: ubuntu14_LTS_64
-    zone_id: is1a
+    zone: is1a
     cpu: 2
     mem: 2
     icon: Ubuntu
