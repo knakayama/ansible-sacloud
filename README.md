@@ -17,7 +17,7 @@ Manage sacloud with Ansible
 See [demo repository](https://github.com/knakayama/ansible-sacloud-demo).
 # License
 
-GPL
+GPLv3
 
 # Author
 
