@@ -83,6 +83,11 @@ options:
       - Server tags
     required: false
     default: false
+  force:
+    description:
+      - force to stop server
+    required: false
+    default: false
   state:
     description:
       - On C(present), it will create if server does not exist.
@@ -202,7 +207,10 @@ class Server():
                             % int(_server.id))
 
         try:
-            _server.stop()
+            if self._module.params['force']:
+                _server.stop()
+            else:
+                _server.shutdown()
             _server.sleep_until_down()
         except Exception, e:
             self._success(msg='Failed to stop server: %s' % e)
@@ -274,6 +282,7 @@ def main():
             desc=dict(required=False),
             tags=dict(required=False, type='list'),
             icon=dict(required=False),
+            force=dict(required=False, default=False, type='bool'),
             state=dict(required=False, default='present',
                         choices=['present', 'absent', 'stopped', 'running'])
         ),
