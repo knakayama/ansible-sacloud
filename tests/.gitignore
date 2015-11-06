@@ -1,0 +1,8 @@
+.envrc
+hosts.yml
+knakayama.sacloud
+ansible
+host_vars/*
+!host_vars/.gitkeep
+keys/*
+!keys/.gitkeep

@@ -52,6 +52,19 @@
     access_token: "{{ lookup('env', 'ACCESS_TOKEN') }}"
     access_token_secret: "{{ lookup('env', 'ACCESS_TOKEN_SECRET') }}"
     server_resource_id: "{{ sacloud_server_resource_id }}"
+    name: updated-name
+    zone: is1a
+    cpu: 1
+    mem: 1
+    icon: Ubuntu2
+    desc: |-
+      this
+      is
+      an
+      updated
+      server
+    tags:
+      - updated
     state: present
   register: result
 - name: Verify results of success

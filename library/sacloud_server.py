@@ -180,14 +180,14 @@ class Server():
         except Exception, e:
             self._fail(msg='Failed to find server icon: %s' % e)
 
-    def _get_server(self, server_resource_id):
+    def _get_server_by_id(self, server_resource_id):
         try:
             return self._saklient.server.get_by_id(str(server_resource_id))
         except Exception:
             self._fail(msg='Failed to find server: %d' % server_resource_id)
 
-    def destroy(self):
-        _server = self._get_server(self._module.params['server_resource_id'])
+    def destroy(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
 
         try:
             if _server.is_up():
@@ -198,8 +198,8 @@ class Server():
             self._fail(msg='Failed to destroy server: %s' % e)
         self._success(msg='Successfully destroy server: %s' % int(_server.id))
 
-    def stop(self):
-        _server = self._get_server(self._module.params['server_resource_id'])
+    def stop(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
 
         if _server.is_down():
             self._success(changed=False,
@@ -218,8 +218,8 @@ class Server():
         self._success(msg='Successfully stop server: %d'
                         % int(_server.id))
 
-    def boot(self):
-        _server = self._get_server(self._module.params['server_resource_id'])
+    def boot(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
 
         if _server.is_up():
             self._success(changed=False,
@@ -251,8 +251,7 @@ class Server():
 
     def _set_params(self, _server):
         _server.name = self._module.params['name']
-        _server.plan = self._get_plan_by_spec(self._module.params['cpu'],
-                                        self._module.params['mem'])
+        self._set_plan(_server)
 
         if self._module.params['desc']:
             _server.description = self._get_desc(self._module.params['desc'])
@@ -260,6 +259,32 @@ class Server():
             _server.tags = self._get_tags(self._module.params['tags'])
         if self._module.params['icon']:
             _server.icon = self._get_icon(self._module.params['icon'])
+
+    def _set_plan(self, _server):
+        if _server.exists() and ('cpu' and 'mem') in self._module.params:
+            try:
+                _server.change_plan(self._get_plan_by_spec(self._module.params['cpu'],
+                                            self._module.params['mem']))
+            except Exception, e:
+                self._fail(msg='Failed to change plan: %s' % e)
+        else:
+            _server.plan = self._get_plan_by_spec(self._module.params['cpu'],
+                                        self._module.params['mem'])
+
+    def update(self, server_resource_id):
+        _server = self._get_server_by_id(server_resource_id)
+
+        self._set_params(_server)
+
+        if self._module.check_mode:
+            self._success()
+
+        try:
+            _server.save()
+        except Exception, e:
+            self._fail(msg='Failed to update server: %s' % e)
+        self._success(result='Successfully update server: %d' % int(_server.id),
+                        ansible_facts=dict(sacloud_server_resource_id=_server.id))
 
     def _fail(self, msg):
         self._module.fail_json(msg=msg)
@@ -306,16 +331,14 @@ def main():
         module.fail_json(msg='missing required arguments: server_resource_id')
 
     if module.params['state'] == 'absent':
-        server.destroy()
+        server.destroy(module.params['server_resource_id'])
     elif module.params['state'] == 'stopped':
-        server.stop()
+        server.stop(module.params['server_resource_id'])
     elif module.params['state'] == 'running':
-        server.boot()
+        server.boot(module.params['server_resource_id'])
     else:
         if module.params['server_resource_id']:
-            # TODO: implement update
-            #server.update()
-            module.exit_json(changed=False)
+            server.update(module.params['server_resource_id'])
         else:
             server.create()
 
