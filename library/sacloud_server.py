@@ -47,7 +47,7 @@ options:
       - The sacloud zone to use.
     required: false
     default: is1a
-    choices: [ 'is1a', is1b', 'tk1a' ]
+    choices: [ 'is1a', is1b', 'tk1a', 'tk1v' ]
   server_resource_id:
     description:
       - The resource id for the server
@@ -274,7 +274,7 @@ def main():
             access_token=dict(required=True, aliases=['token']),
             access_token_secret=dict(required=True, aliases=['token_secret']),
             zone=dict(required=False, default='is1a',
-                            choices=['is1a', 'is1b', 'tk1a']),
+                            choices=['is1a', 'is1b', 'tk1a', 'tk1v']),
             server_resource_id=dict(required=False, type='int'),
             cpu=dict(required=False, default='1', type='int'),
             mem=dict(required=False, default='1', type='int'),
