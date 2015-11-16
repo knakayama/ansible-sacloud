@@ -47,7 +47,7 @@ options:
       - The sacloud zone to use.
     required: false
     default: 'is1a'
-    choices: ['is1a', 'is1b', 'tk1a']
+    choices: ['is1a', 'is1b', 'tk1a', 'tk1v']
   name:
     description:
       - The router name
@@ -371,7 +371,7 @@ def main():
             access_token=dict(required=True, aliases=['token']),
             access_token_secret=dict(required=True, aliases=['token_secret']),
             zone=dict(required=False, default='is1a',
-                            choices=['is1a', 'is1b', 'tk1a']),
+                            choices=['is1a', 'is1b', 'tk1a', 'tk1v']),
             router_resource_id=dict(required=False, type='int'),
             lb_resource_id=dict(required=False, type='int'),
             name=dict(required=False, default='default'),
