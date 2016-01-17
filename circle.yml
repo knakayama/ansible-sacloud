@@ -1,9 +1,8 @@
 dependencies:
   post:
-    - pip install -r requirements.txt
-
-  override:
-    - echo "TODO build"
+    - |
+      cd tests
+      pip install -r requirements.txt
 
 test:
   override:
