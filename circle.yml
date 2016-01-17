@@ -7,6 +7,7 @@ dependencies:
     - |
       cd tests
       pip install -r requirements.txt
+      ssh-keygen -f keys/id_rsa -N ''
 
 test:
   override:
