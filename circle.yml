@@ -1,0 +1,12 @@
+dependencies:
+  post:
+    - pip install -r requirements.txt
+
+  override:
+    - echo "TODO build"
+
+test:
+  override:
+    - |
+      cd tests
+      ansible-playbook -i ./bin/hosts.py site.yml -vv
